@@ -1,0 +1,7 @@
+# Arquivos gerados na compilação (Code::Blocks)
+bin/
+obj/
+*.exe
+*.o
+*.depend
+*.layout

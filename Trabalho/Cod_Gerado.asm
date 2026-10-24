@@ -1,119 +1,116 @@
 .data
-error_msg: .asciiz "Não foi possivel calcular" 
-num: .word 20,
+error_msg: .asciiz "Nao foi possivel calcular"
+num: .word 3, 4, 2
 
-.text 
- main:
-la      $t0, num
-jal    main_fibonacci
-jal     exit
+.text
+main:
+    la      $t0, num
+    jal     main_add
+    jal     main_potencia
+    jal     exit
 
 main_add:
-lw      $s0, 0($t0)
-lw      $s1, 4($t0)
-add     $s2 $s0 $s1
-j       end2
+    lw      $s0, 0($t0)
+    lw      $s1, 4($t0)
+    add     $s2, $s0, $s1
+    sw      $s2, 4($t0)
+    addi    $t0, $t0, 4
+    jr      $ra
 
 main_sub:
-lw      $s0, 0($t0)
-lw      $s1, 4($t0)
-sub     $s2 $s0 $s1
-j       end2
+    lw      $s0, 0($t0)
+    lw      $s1, 4($t0)
+    sub     $s2, $s0, $s1
+    sw      $s2, 4($t0)
+    addi    $t0, $t0, 4
+    jr      $ra
 
 main_mult:
-lw      $s0, 0($t0)
-lw      $s1, 4($t0)
-mul     $s2, $s0, $s1
-j      end2
+    lw      $s0, 0($t0)
+    lw      $s1, 4($t0)
+    mul     $s2, $s0, $s1
+    sw      $s2, 4($t0)
+    addi    $t0, $t0, 4
+    jr      $ra
 
 main_div:
-lw      $s0, 0($t0)
-lw      $s1, 4($t0)
-beq     $s1, $zero, error 
-div     $s2, $s0, $s1
-j       end2
+    lw      $s0, 0($t0)
+    lw      $s1, 4($t0)
+    beqz    $s1, error              # divisao por zero
+    div     $s2, $s0, $s1           # divisao inteira
+    sw      $s2, 4($t0)
+    addi    $t0, $t0, 4
+    jr      $ra
 
 main_raiz:
-lw       $s0, 0($t0)
-li       $s2, 0
-isqrt:
-mul      $t2, $s2, 2
-add      $t2, $t2, 1
-sub      $s0, $s0, $t2
-add      $s2, $s2, 1
-beq      $s0, $zero, end
-slt      $t2, $s0, $zero
-beq      $t2, 1, error
-j        isqrt
+    lw      $s0, 0($t0)
+    bltz    $s0, error              # raiz de numero negativo
+    li      $s2, 0
+raiz_repete:
+    addi    $t1, $s2, 1
+    mul     $t2, $t1, $t1
+    bgt     $t2, $s0, raiz_fim
+    move    $s2, $t1
+    j       raiz_repete
+raiz_fim:
+    sw      $s2, 0($t0)
+    jr      $ra
 
 main_potencia:
-lw      $s0, 0($t0)
-lw      $s2, 0($t0)
-lw      $s1, 4($t0)
-li      $t2,1
-while:
-beq      $t2,$s1,end2
-mul      $s2,$s2,$s0
-add      $t2,$t2,1
-j        while
+    lw      $s0, 0($t0)             # base
+    lw      $s1, 4($t0)             # expoente
+    bltz    $s1, error              # expoente negativo nao da resultado inteiro
+    li      $s2, 1
+    li      $t2, 0
+potencia_repete:
+    beq     $t2, $s1, potencia_fim
+    mul     $s2, $s2, $s0
+    addi    $t2, $t2, 1
+    j       potencia_repete
+potencia_fim:
+    sw      $s2, 4($t0)
+    addi    $t0, $t0, 4
+    jr      $ra
 
 main_fatorial:
-lw	    $s2, 0($t0)
-lw	    $t1, 0($t0)	
-beqz    $s2, error
-bltz    $s2, error
-fact: 
-subi    $t1, $t1, 1
-beqz    $t1, end
-mul     $s2, $s2, $t1 
-sw      $s2, 0($t0)
-j 	    fact 
+    lw      $t1, 0($t0)
+    bltz    $t1, error              # fatorial de numero negativo
+    li      $s2, 1                  # 0! = 1
+fatorial_repete:
+    blez    $t1, fatorial_fim
+    mul     $s2, $s2, $t1
+    addi    $t1, $t1, -1
+    j       fatorial_repete
+fatorial_fim:
+    sw      $s2, 0($t0)
+    jr      $ra
 
 main_fibonacci:
-lw 	    $t2, 0($t0)
-blez 	$t2, error
-li	    $s3, 1
-li 	    $s4, 1
-sw 	$s4, 0($t0)
-la      $s2, ($s4)
-addi 	$t2, $t2, -2
-blez 	$t2,  end3
-j        Loop
-Loop:
-add 	    $s5 $s3 $s4
-addi 	$t2, $t2, -1
-sw 	    $s5, 0($t0)
-la       $s2, ($s5)
-blez 	$t2,  end3
-add	    $s3, $s5, $s4
-addi 	$t2, $t2, -1
-sw	    $s3, 0($t0)
-la       $s2, ($s3)
-blez 	$t2,  end3
-add	    $s4, $s5, $s3
-addi 	$t2, $t2 -1
-sw	    $s4, 0($t0)
-la       $s2, ($s4)
-blez 	$t2, end3
-bgtz 	$t2, Loop
+    lw      $t2, 0($t0)
+    blez    $t2, error              # a sequencia comeca no 1o termo
+    li      $s3, 0                  # termo anterior
+    li      $s2, 1                  # termo atual
+fibonacci_repete:
+    addi    $t2, $t2, -1
+    blez    $t2, fibonacci_fim
+    add     $s4, $s3, $s2
+    move    $s3, $s2
+    move    $s2, $s4
+    j       fibonacci_repete
+fibonacci_fim:
+    sw      $s2, 0($t0)
+    jr      $ra
 
-end:
-sw      $s2,0($t0)
-j end3
-end2: 
-sw      $s2, 4($t0)
-addi    $t0 $t0 4
-end3:
-jr    	$ra
-
-exit: 
-la       $a0, ($s2)
-li      $v0,1
-syscall
-li      $v0, 10
-syscall
+exit:
+    move    $a0, $s2
+    li      $v0, 1                  # imprime inteiro
+    syscall
+    li      $v0, 10                 # encerra
+    syscall
 
 error:
-la       $a0, error_msg
-la       $v0, 4
-syscall
+    la      $a0, error_msg
+    li      $v0, 4                  # imprime texto
+    syscall
+    li      $v0, 10                 # encerra
+    syscall
